@@ -6,12 +6,14 @@ import Message from './Components/Message/Message'
 import NavBar from './Components/NavBar/NavBar'
 import ReactForms from './Components/ReactForms/ReactForms'
 import SignUpForm from './Components/SignUpForm/SignUpForm'
+import WindowTracker from './Components/WindowTracker/WindowTracker'
 
 function App( ) {
   
 
   return (
     <>
+      {/* <WindowTracker /> */}
       <NavBar />
        <MemeGenerator />
       {/* <Boxes />
