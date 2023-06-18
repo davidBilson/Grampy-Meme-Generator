@@ -1,41 +1,88 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BiImage } from 'react-icons/bi';
+import { useRef } from 'react';
 import html2canvas from 'html2canvas';
 
-const MemeGenerator = () => {
-  const [memes, setMemes] = useState([]);
-  const [memeImg, setMemeImg] = useState('');
-  const [memeAlt, setMemeAlt] = useState('');
-  const [displayCard, setDisplayCard] = useState('none');
-  const exportRef = useRef();
 
-  useEffect(() => {
-    fetch('https://api.imgflip.com/get_memes')
+const exportAsImage = async (element, fileName) => {
+  const canvas = await html2canvas(element);
+  const image = canvas.toDataURL('image/png', 1.0);
+  downloadImage(image, fileName);
+};
+
+const downloadImage = (blob, fileName) => {
+  const anchor = document.createElement('a');
+  anchor.href = blob;
+  anchor.download = fileName;
+  anchor.click();
+};
+
+
+
+
+
+const MemeGenerator = () => {
+
+  
+
+  const [memes, setMemes] = useState([]);
+
+  useEffect( () => {
+    // Fetch memes from Imgflip API
+    fetch("https://api.imgflip.com/get_memes")
       .then(response => response.json())
       .then(data => {
+        // Access the memes array from the response data
         const memes = data.data.memes;
         setMemes(memes);
       })
       .catch(error => {
-        console.error('Error fetching memes:', error);
-      });
+        // Handle any errors that occurred during the fetch
+        alert("Error fetching memes:", error);
+      }); 
   }, []);
 
+  useEffect(() => {
+    console.log("useeffect ran o")
+  }, []) 
+
+  // Image variable for virtual DOM
+  let memeSource;
+  let memeTitle;
+  
+    // Meme States
+  const [memeImg, setMemeImg] = useState();
+  const [memeAlt, setMemeAlt] = useState(memeTitle);
+  const [displayCard, setDisplayCard] = useState("none");
+
+  const [meme, setMeme] = useState({
+    topText: "",
+    bottomText: "",
+    randomImage: "",
+  });
+  
+  const [allMemeImages, setAllMemeImages] = useState();
+  
+  // Function to generate a random meme image //  
   const getMemeImage = () => {
     const randomNumber = Math.floor(Math.random() * memes.length);
     const selectedMeme = memes[randomNumber];
-    setDisplayCard('block');
-    setMemeImg(selectedMeme.url);
-    setMemeAlt(selectedMeme.name);
+    memeSource = selectedMeme.url;
+    memeTitle = selectedMeme.name;
+    
+    // Handle states  changes the variable when the button is clicked
+    setDisplayCard("block");
+    setMemeImg(memeSource);
+    setMemeAlt(memeTitle);
   };
-
-  const handleChange = event => {
-    const { name, value } = event.target;
+  
+  const handleChange  = (event) => {
+    const {name, value} = event.target 
     setMeme(prevMeme => ({
       ...prevMeme,
-      [name]: value,
-    }));
-  };
+      [name] : value
+    }))
+  }
 
   const handleDownload = () => {
     const element = document.getElementById('capture');
@@ -47,55 +94,50 @@ const MemeGenerator = () => {
     });
   };
 
+  const exportRef = useRef();
+
   const handleCaptureImage = () => {
-    html2canvas(exportRef.current).then(canvas => {
-      const image = canvas.toDataURL('image/png');
-      downloadImage(image, 'test.png');
-    });
+    exportAsImage(exportRef.current, 'test.png');
   };
-
-  const downloadImage = (imageDataUrl, fileName) => {
-    const anchor = document.createElement('a');
-    anchor.href = imageDataUrl;
-    anchor.download = fileName;
-    anchor.click();
-  };
-
   return (
     <main>
       <div className='form'>
-        <input
-          placeholder='Top Text'
-          className='form-input'
-          type='text'
-          name='topText'
+        <input 
+          placeholder='Top Text' 
+          className='form-input' 
+          type="text" 
+          name="topText"
           value={meme.topText}
           onChange={handleChange}
-        />
+          />
+          
 
-        <input
-          placeholder='Bottom Text'
-          className='form-input'
-          type='text'
-          name='bottomText'
+        <input 
+          placeholder='Bottom Text' 
+          className='form-input' 
+          type="text" 
+          name="bottomText"
           value={meme.bottomText}
           onChange={handleChange}
-        />
+          />
 
-        <button className='form-button' onClick={getMemeImage}>
+        <button 
+          className='form-button' 
+          onClick={getMemeImage}
+          >
           Generate Meme <BiImage size={'1.5rem'} />
         </button>
-      </div>
 
+      </div>
       <div ref={exportRef}>
-      <div style={{ display: displayCard }} className='meme-image-card' >
+      <div style={{display : displayCard}} className='meme-image-card'>
         <img src={memeImg} alt={memeAlt} />
         <h2 className='meme-text top'>{meme.topText}</h2>
         <h2 className='meme-text bottom'>{meme.bottomText}</h2>
       </div>
       </div>
 
-      <button onClick={handleCaptureImage}>Download Image</button>
+      <button className='downloadBtn' onClick={handleCaptureImage}>Download Image</button>
     </main>
   );
 };
